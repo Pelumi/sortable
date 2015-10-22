@@ -115,11 +115,14 @@ public class Sortable {
     }
 
     private double compare(Product product, Listing listing) {
-        
+
+        if(product == null || listing == null || product.getManufacturer() ==null || listing.getManufacturer()==null){
+            return 0.0;
+        }
         String currentProductString, currentListingString;
         
-        currentProductString = this.sanitize(product.getManufacturer());
-        currentListingString = this.sanitize(listing.getManufacturer());         
+        currentProductString = sanitize(product.getManufacturer());
+        currentListingString = sanitize(listing.getManufacturer());
         
        int manufacturerScore = currentListingString.contains(currentProductString)|| currentProductString.contains(currentListingString)? 40 : 0;
               
@@ -144,6 +147,10 @@ public class Sortable {
 
     private String sanitize(String dirtyString)
     {
+        if(dirtyString == null || dirtyString.isEmpty()) {
+            Logger.getLogger(Sortable.class.getName()).log(Level.WARNING, "Cannot sanitize null or empty string");
+            return dirtyString; //TODO decide a better thing to return
+        }
         dirtyString = dirtyString.replaceAll("_","").replaceAll("-", "");
         return dirtyString.replaceAll("\\s", "");
     }

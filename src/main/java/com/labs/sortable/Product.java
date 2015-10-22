@@ -5,6 +5,7 @@
  */
 package com.labs.sortable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.Date;
@@ -20,6 +21,7 @@ public class Product implements Serializable{
     private String family;
     private String model;
     @SerializedName("announced-date")
+    @JsonProperty("announced-date")
     private Date announced_date;
 
     public String getProduct_name() {
