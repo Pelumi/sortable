@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sortable;
+package com.labs.sortable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,9 +14,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sun.java2d.pipe.OutlineTextRenderer;
 
 /**
  *
@@ -25,15 +26,24 @@ import sun.java2d.pipe.OutlineTextRenderer;
 public class Sortable {
 
     private final double THRESHOLD= 60.0;
-    
-    public static void main(String[] args) {
 
+    private static final String P_WORKIN_DIR = "/home/pelumi/IdeaProjects/sortable/src/main/resources/";
+    private static final String B_WORKIN_DIR = "C:\\Users\\Oy\\Documents\\NetBeansProjects\\Sortable\\src\\main\\resources\\";
+
+    private static final String WORKIN_DIR = Util.isPelumi() ? P_WORKIN_DIR : B_WORKIN_DIR;
+    private static final String LISTINGS_TEMP_FILE = "listings_temp.txt";
+    private static final String LISTINGS_FILE = "listings.txt";
+    private static final String RESULT_FILE = "results.txt";
+    private static final String PRODUCT_FILE = "products.txt";
+
+    public static void main(String[] args) {
+//TODO pas in file names (training and test file) as command line arguments
         try {
             //open file that contains products data
             FileInputStream instream;
             BufferedReader buffReader;
             Sortable sortable = new Sortable();
-            instream = new FileInputStream("C:\\Users\\Oy\\Documents\\NetBeansProjects\\Sortable\\src\\res\\products.txt");
+            instream = new FileInputStream(WORKIN_DIR + PRODUCT_FILE);
             buffReader = new BufferedReader(new InputStreamReader(instream));
            
             String currentLine, currentLineListing;
@@ -43,7 +53,7 @@ public class Sortable {
             int count = 0;
             try {           
                 //open file that will contain results
-                File resultFile = new File("C:\\Users\\Oy\\Documents\\NetBeansProjects\\Sortable\\src\\res\\results.txt");
+                File resultFile = new File(WORKIN_DIR + RESULT_FILE);
                 if(!resultFile.exists())resultFile.createNewFile();
                 FileOutputStream resultOutputStream = new  FileOutputStream(resultFile);
             
@@ -57,10 +67,10 @@ public class Sortable {
 //                    System.out.println("******Listing objects*****");
                     int count2 = 0;
                     //TODO; check which file is smaller, listings.txt or listings_temp.txt, then the smaller is to be written to and the larger read from
-                    FileInputStream instreamListing = new FileInputStream("C:\\Users\\Oy\\Documents\\NetBeansProjects\\Sortable\\src\\res\\listings.txt");
+                    FileInputStream instreamListing = new FileInputStream(WORKIN_DIR + LISTINGS_FILE);
                     BufferedReader buffReaderListing = new BufferedReader(new InputStreamReader(instreamListing));
                     
-                    File file = new File("C:\\Users\\Oy\\Documents\\NetBeansProjects\\Sortable\\src\\res\\listings_temp.txt");
+                    File file = new File(WORKIN_DIR + LISTINGS_TEMP_FILE);
                     if(!file.exists())file.createNewFile();
                     FileOutputStream outputStream = new FileOutputStream(file);
                 
@@ -96,6 +106,12 @@ public class Sortable {
             Logger.getLogger(Sortable.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    public File getFile(String fileName){
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(fileName).getFile());
+        return file;
     }
 
     private double compare(Product product, Listing listing) {
