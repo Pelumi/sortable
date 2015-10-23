@@ -6,6 +6,10 @@
 package com.sortable.model;
 
 import java.io.Serializable;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.labs.sortable.Util;
 
 /**
  *
@@ -17,6 +21,10 @@ public class Listing implements Serializable{
     private String manufacturer;
     private String currency;
     private String price;
+
+    @JsonIgnore
+    private String deducedFamily;
+    private String deducedManufacturer;
 
     public String getTitle() {
         return title;
@@ -48,6 +56,46 @@ public class Listing implements Serializable{
 
     public void setPrice(String price) {
         this.price = price;
+    }
+
+    @JsonIgnore
+    public String getCleanTitle(){
+        return Util.cleanData(getTitle(), false);
+    }
+
+    public String getDeducedFamily() {
+        return deducedFamily;
+    }
+
+    public void setDeducedFamily(String deducedFamily) {
+        this.deducedFamily = deducedFamily;
+    }
+    @JsonIgnore
+    public String getDeducedManufacturer() {
+        return deducedManufacturer;
+    }
+
+    public void setDeducedManufacturer(String deducedManufacturer) {
+        this.deducedManufacturer = deducedManufacturer;
+    }
+
+    //TODO create local variable for this, only clean once, repeat for similar fields in product class
+    @JsonIgnore
+    public String getCleanManufacturer(){
+        return Util.cleanData(getManufacturer(), true);
+    }
+
+    public void deduceFields(Set<String> allFamilies, Set<String> allManufacturers) {
+        String title = getCleanTitle();
+        String[] titleWords = title.split(" ");// explore better tokenization options
+
+        //TODO handle case where multiple families or manufacturers are found
+        for (String titleWord : titleWords) {
+            if (allFamilies.contains(titleWord))
+                setDeducedFamily(titleWord);
+            if (allManufacturers.contains(titleWord))
+                setDeducedManufacturer(titleWord);
+        }
     }
     
     @Override

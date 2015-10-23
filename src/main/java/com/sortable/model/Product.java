@@ -5,8 +5,11 @@
  */
 package com.sortable.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
+import com.labs.sortable.Util;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -63,7 +66,12 @@ public class Product implements Serializable{
     public void setAnnounced_date(Date announced_date) {
         this.announced_date = announced_date;
     }
-    
+
+    @JsonIgnore
+    public String getCleanManufacturer(){
+        return Util.cleanData(getManufacturer(), true);
+    }
+
     @Override
     public String toString()
     {
