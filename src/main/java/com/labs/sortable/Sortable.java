@@ -7,6 +7,9 @@ package com.labs.sortable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sortable.model.Listing;
+import com.sortable.model.Product;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +17,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
