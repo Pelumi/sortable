@@ -1,45 +1,41 @@
 package com.labs.sortable;
 
+import com.sortable.model.Listing;
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.text.Normalizer;
+import java.util.*;
 
 /**
  * Created by pelumi on 10/22/15.
  */
 public class Util {
-    private static final Set<String> stopWords = new HashSet<String>(Arrays.asList("ca", "canada", "the", "a"));
+    private static final Set<String> stopWords = new HashSet<>(Arrays.asList("ca", "canada", "deutschland", "the", "a",
+            "us", "usa", "uk", "germany", "gmbh", "europe", "ltd", "ltd.", "inc", "inc.", "co.", "co", "international", "for", "of"));
+    private static final Set<String> manufacturerStopWords = new HashSet<>(Arrays.asList("electronics","camera", "phone",
+            "computer", "phones", "computers", "photo", "corporation", "technology", "solutions", "group"));
+
     private static Map<String, String> knownAliases = new HashMap<>();
 
     static {
-        knownAliases.put("hewlet packard", "hp");
+        knownAliases.put("hp", "hewlett packard");
+        knownAliases.put("general electric", "ge");
+        knownAliases.put("fujifilm", "fuji");
+        knownAliases.put("agfa", "agfaphoto");
+
         //add others
-    }
-
-
-    //TODO will drop this class once data is being loaded directly from resources folder using getFile helper in Sortable.java
-    public static boolean isPelumi(){
-        String computername = null;
-        try {
-            computername = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            //be quiet
-        }
-        if (computername.contains("pelumi"))
-            return true;
-        return false;
     }
 
     public static Set<String> getStopWords(){
         return stopWords;
     }
 
-    public static boolean isStopWord(String word){
+    public static boolean isStopWord(String word, boolean includeManufacturerStopWord){
         if(stopWords.contains(word))
+            return true;
+        if(includeManufacturerStopWord && manufacturerStopWords.contains(word))
             return true;
         return false;
     }
@@ -50,26 +46,46 @@ public class Util {
         return null;
     }
 
-    public static String cleanData(String string, boolean removeSymbols) {
+    public static String cleanData(String string, boolean removeSymbols, boolean removeManufacturerStopwords) {
         //todo clean string, to lower, remove dahses, dots, hypens
         //generate a list of 'noise words and remove them from manufacturer key
         if (string == null || string.isEmpty())
             return "";
+        string = StringUtils.stripAccents(string).toLowerCase();
 
-        String man = string.toLowerCase();
         if(removeSymbols)
-            man = man.replaceAll("-", "").replaceAll("_", "");
+            string = string.replaceAll("-", "").replaceAll("-", "").replaceAll("_", "").replaceAll("\\(", "")
+                    .replaceAll("\\)", "").replaceAll("!", "").replaceAll("\\?", "").replaceAll(":", "").replaceAll("&", "");
 
-        //generate stopwords in an automated way
-        String[] manList = man.split(" ");
+        String[] manList = string.split(" ");
         StringBuilder builder = new StringBuilder();
         for (String word : manList) {
-            if(!isStopWord(word)){
+            if(!isStopWord(word, removeManufacturerStopwords)){
                 builder.append(word);
                 builder.append(" ");
             }
         }
         return builder.toString().trim();
+    }
+
+    public static void exploreFreqDistr(List<Listing> allListings){
+        Map<String, Integer> wordCount  = new HashMap<>();
+
+        for (Listing listing : allListings) {
+            String title = listing.getTitle();
+            if(title !=null && !title.isEmpty()){
+                title = cleanData(title, true, false);
+                String[] words = title.split(" ");
+                for (String word : words) {
+                    if(wordCount.containsKey(word))
+                        wordCount.put(word, wordCount.get(word)+ 1);
+                    else
+                        wordCount.put(word, 1);
+                }
+            }
+        }
+
+        System.out.println(wordCount);
     }
 
 }

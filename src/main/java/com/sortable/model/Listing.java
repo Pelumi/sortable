@@ -25,6 +25,7 @@ public class Listing implements Serializable{
     @JsonIgnore
     private String deducedFamily;
     private String deducedManufacturer;
+    private String deducedModel;
 
     public String getTitle() {
         return title;
@@ -60,7 +61,7 @@ public class Listing implements Serializable{
 
     @JsonIgnore
     public String getCleanTitle(){
-        return Util.cleanData(getTitle(), false);
+        return Util.cleanData(getTitle(), false, false);
     }
 
     public String getDeducedFamily() {
@@ -79,13 +80,22 @@ public class Listing implements Serializable{
         this.deducedManufacturer = deducedManufacturer;
     }
 
+    @JsonIgnore
+    public String getDeducedModel() {
+        return deducedModel;
+    }
+
+    public void setDeducedModel(String deducedModel) {
+        this.deducedModel = deducedModel;
+    }
+
     //TODO create local variable for this, only clean once, repeat for similar fields in product class
     @JsonIgnore
     public String getCleanManufacturer(){
-        return Util.cleanData(getManufacturer(), true);
+        return Util.cleanData(getManufacturer(), true, true);
     }
 
-    public void deduceFields(Set<String> allFamilies, Set<String> allManufacturers) {
+    public void deduceFields(Set<String> allFamilies, Set<String> allManufacturers, Set<String> allModels) {
         String title = getCleanTitle();
         String[] titleWords = title.split(" ");// explore better tokenization options
 
@@ -95,6 +105,8 @@ public class Listing implements Serializable{
                 setDeducedFamily(titleWord);
             if (allManufacturers.contains(titleWord))
                 setDeducedManufacturer(titleWord);
+            if (allModels.contains(titleWord))
+                setDeducedModel(titleWord);
         }
     }
     

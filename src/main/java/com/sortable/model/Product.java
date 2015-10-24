@@ -69,7 +69,7 @@ public class Product implements Serializable{
 
     @JsonIgnore
     public String getCleanManufacturer(){
-        return Util.cleanData(getManufacturer(), true);
+        return Util.cleanData(getManufacturer(), true, true);
     }
 
     @Override
