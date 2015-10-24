@@ -2,10 +2,15 @@ package com.labs.sortable;
 
 import com.sortable.model.Listing;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.TokenFilter;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.shingle.ShingleFilter;
+import org.apache.lucene.analysis.standard.StandardFilter;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.Normalizer;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -20,10 +25,11 @@ public class Util {
     private static Map<String, String> knownAliases = new HashMap<>();
 
     static {
-        knownAliases.put("hp", "hewlett packard");
+        knownAliases.put("hewlett packard", "hp");
+        knownAliases.put("hewlet packard", "hp");
         knownAliases.put("general electric", "ge");
-        knownAliases.put("fujifilm", "fuji");
-        knownAliases.put("agfa", "agfaphoto");
+        knownAliases.put("fuji", "fujifilm");
+        knownAliases.put("agfaphoto", "agfa");
 
         //add others
     }
@@ -40,10 +46,14 @@ public class Util {
         return false;
     }
 
-    public static Set<String> getKnownAliases(){
-        //HP --> Hewlet Packard
+    public static boolean hasManufacturerAlias(String term){
+        return knownAliases.containsKey(term.toLowerCase().trim());
+    }
 
-        return null;
+    public static String getManufacturerAlias(String term){
+        //Hewlett Packard --> HP
+
+        return knownAliases.get(term.toLowerCase().trim());
     }
 
     public static String cleanData(String string, boolean removeSymbols, boolean removeManufacturerStopwords) {
@@ -86,6 +96,40 @@ public class Util {
         }
 
         System.out.println(wordCount);
+    }
+
+    public static Set<String> generateNgrams(String sentence, int ngramCount) {
+        StringReader reader = new StringReader(sentence);
+        Set<String> ngrams = new HashSet<>();
+
+        //use lucene's shingle filter to generate the tokens
+        StandardTokenizer source = new StandardTokenizer(reader);
+        TokenStream tokenStream = new StandardFilter(source);
+        TokenFilter sf = null;
+
+        //if only unigrams are needed use standard filter else use shingle filter
+        if(ngramCount == 1){
+            sf = new StandardFilter(tokenStream);
+        }
+        else{
+            sf = new ShingleFilter(tokenStream);
+            ((ShingleFilter)sf).setMaxShingleSize(ngramCount);
+        }
+
+        CharTermAttribute charTermAttribute = sf.addAttribute(CharTermAttribute.class);
+        try {
+            sf.reset();
+            while (sf.incrementToken()) {
+                String token = charTermAttribute.toString().toLowerCase();
+                ngrams.add(token);
+            }
+            sf.end();
+            sf.close();
+        } catch (IOException ex) {
+            // System.err.println("Scream and cry as desired");
+            ex.printStackTrace();
+        }
+        return ngrams;
     }
 
 }

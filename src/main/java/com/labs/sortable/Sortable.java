@@ -48,7 +48,7 @@ public class Sortable {
                 continue;
             Listing newListing = mapper.readValue(jsonLine, Listing.class);
 
-            //todo read the file by line and process each
+            //TODO read the file by line and process each
             allListings.add(newListing);
         }
         return allListings;
@@ -84,9 +84,9 @@ public class Sortable {
         String listingManufacturer = listing.getCleanManufacturer();
         if (listingManufacturer != null && !listingManufacturer.isEmpty() && prodManufacturerMap.containsKey(listingManufacturer)) {
             List<Product> probableProducts = prodManufacturerMap.get(listingManufacturer);
-            //todo do some black art comparison
+            //TODO do some black art comparison
             for (Product probableProduct : probableProducts) {
-                if (inString(listing.getTitle(), probableProduct.getModel())) {
+                if (inString(listing, probableProduct.getModel())) {
                     //model number is in string a definite match
                     // System.out.println(probableProduct + "\nMatches: " + "\n" + listing);
                     addMatch(listing, probableProduct);
@@ -101,10 +101,11 @@ public class Sortable {
                     listing.getDeducedModel() != null && !listing.getDeducedModel().isEmpty() &&
                     prodManufacturerMap.containsKey(listing.getDeducedManufacturer())) {
                 List<Product> probableProducts = prodManufacturerMap.get(listing.getDeducedManufacturer());
-                //todo do some black art comparison
+                //TODO do some black art comparison
                 for (Product probableProduct : probableProducts) {
                     if (probableProduct.getModel().toLowerCase().equals(listing.getDeducedModel())) {
                         addMatch(listing, probableProduct);
+                        break;
                     }
                     //  else if ()// blackart comparison with family and actual name
                 }
@@ -122,10 +123,9 @@ public class Sortable {
         return file;
     }
 
-    private boolean inString(String string, String word) {
-        string = string.toLowerCase();
-        word = word.toLowerCase();
-        Set<String> hashSet = new HashSet<>(Arrays.asList(string.split(" ")));
+    private boolean inString(Listing listing, String word) {
+        word = word.toLowerCase().trim();
+        Set<String> hashSet = listing.titleNgrams();
         return hashSet.contains(word);
     }
 
@@ -185,7 +185,7 @@ public class Sortable {
 
         //System.out.println("Total unmatched Manufacturers are: " + unmatchedManufacturers.size() + "\nThey are: ");
         //System.out.println(unmatchedManufacturers);
-        System.out.println(unmatchedListings);
+        //System.out.println(unmatchedListings);
 
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;

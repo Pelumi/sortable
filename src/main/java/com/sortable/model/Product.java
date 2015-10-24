@@ -12,6 +12,7 @@ import com.labs.sortable.Util;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 
 /**
  *
@@ -26,6 +27,9 @@ public class Product implements Serializable{
     @SerializedName("announced-date")
     @JsonProperty("announced-date")
     private Date announced_date;
+
+    private String cleanManufacturer;
+    private Set<String> manufacturerTokens;
 
     public String getProduct_name() {
         return product_name;
@@ -69,7 +73,9 @@ public class Product implements Serializable{
 
     @JsonIgnore
     public String getCleanManufacturer(){
-        return Util.cleanData(getManufacturer(), true, true);
+        if (this.cleanManufacturer == null)
+         this.cleanManufacturer = Util.cleanData(getManufacturer(), true, true);
+        return cleanManufacturer;
     }
 
     @Override

@@ -12,11 +12,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.labs.sortable.Util;
 
 /**
- *
  * @author Oy
  */
-public class Listing implements Serializable{
-    
+public class Listing implements Serializable {
+
     private String title;
     private String manufacturer;
     private String currency;
@@ -26,6 +25,9 @@ public class Listing implements Serializable{
     private String deducedFamily;
     private String deducedManufacturer;
     private String deducedModel;
+    private String cleanManufacturer;
+    private String cleanTitle;
+    private Set<String> titleTokens;
 
     public String getTitle() {
         return title;
@@ -60,10 +62,13 @@ public class Listing implements Serializable{
     }
 
     @JsonIgnore
-    public String getCleanTitle(){
-        return Util.cleanData(getTitle(), false, false);
+    public String getCleanTitle() {
+        if (cleanTitle == null)
+            cleanTitle = Util.cleanData(getTitle(), false, false);
+        return cleanTitle;
     }
 
+    @JsonIgnore
     public String getDeducedFamily() {
         return deducedFamily;
     }
@@ -71,6 +76,7 @@ public class Listing implements Serializable{
     public void setDeducedFamily(String deducedFamily) {
         this.deducedFamily = deducedFamily;
     }
+
     @JsonIgnore
     public String getDeducedManufacturer() {
         return deducedManufacturer;
@@ -89,36 +95,75 @@ public class Listing implements Serializable{
         this.deducedModel = deducedModel;
     }
 
-    //TODO create local variable for this, only clean once, repeat for similar fields in product class
     @JsonIgnore
-    public String getCleanManufacturer(){
-        return Util.cleanData(getManufacturer(), true, true);
+    public String getCleanManufacturer() {
+        if (cleanManufacturer == null)
+            this.cleanManufacturer = Util.cleanData(getManufacturer(), true, true);
+        return cleanManufacturer;
+    }
+
+    @JsonIgnore
+    public Set<String> titleNgrams() {
+        if (titleTokens == null)
+            titleTokens = Util.generateNgrams(getCleanTitle(), 3);//generate title trigrams
+        return titleTokens;
     }
 
     public void deduceFields(Set<String> allFamilies, Set<String> allManufacturers, Set<String> allModels) {
-        String title = getCleanTitle();
-        String[] titleWords = title.split(" ");// explore better tokenization options
+        String[] titleWords = getCleanTitle().split(" ");
+        int manufacturerMatchCount = 0;
+        int familyMatchCount = 0;
+        int modelMatchCount = 0;
 
-        //TODO handle case where multiple families or manufacturers are found
         for (String titleWord : titleWords) {
-            if (allFamilies.contains(titleWord))
+            if (allFamilies.contains(titleWord)) {
                 setDeducedFamily(titleWord);
-            if (allManufacturers.contains(titleWord))
+                familyMatchCount++;
+            }
+
+            if (allManufacturers.contains(titleWord)) {
                 setDeducedManufacturer(titleWord);
-            if (allModels.contains(titleWord))
+                manufacturerMatchCount++;
+            } else if (Util.hasManufacturerAlias(titleWord)) {
+                setDeducedManufacturer(Util.getManufacturerAlias(titleWord));
+                manufacturerMatchCount++;
+            }
+
+            if (allModels.contains(titleWord)) {
                 setDeducedModel(titleWord);
+                modelMatchCount++;
+            }
         }
+
+        //TODO handle same manufacturer found twice as alias and regular name
+
+        //if multiple manufacturers, model or family are found in title, it should be ignored
+        /*if (manufacturerMatchCount > 1)
+            setDeducedManufacturer(null);
+        if (modelMatchCount > 1)
+            setDeducedModel(null);
+        if (familyMatchCount > 1)
+            setDeducedFamily(null);*/
     }
-    
+
     @Override
-    public String toString(){
-    
+    public String toString() {
+
         StringBuilder sb = new StringBuilder();
-        sb.append("{");sb.append("\n");
-        sb.append(" title: ");sb.append(getTitle());sb.append("\n");
-        sb.append(" manufacturer: ");sb.append(getManufacturer());sb.append("\n");
-        sb.append(" currency: ");sb.append(getCurrency());sb.append("\n");
-        sb.append(" price: ");sb.append(getPrice());sb.append("\n");
+        sb.append("{");
+        sb.append("\n");
+        sb.append(" title: ");
+        sb.append(getTitle());
+        sb.append("\n");
+        sb.append(" manufacturer: ");
+        sb.append(getManufacturer());
+        sb.append("\n");
+        sb.append(" currency: ");
+        sb.append(getCurrency());
+        sb.append("\n");
+        sb.append(" price: ");
+        sb.append(getPrice());
+        sb.append("\n");
         sb.append("}");
         return sb.toString();
     }
